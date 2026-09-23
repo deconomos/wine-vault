@@ -104,7 +104,7 @@ const _k = [118,105,110,116,97,103,101].map(c => String.fromCharCode(c)).join(''
 let WINES = [];
 
 async function loadWines() {
-  const r = await fetch('wines.json');
+  const r = await fetch('wines.json?v=' + Date.now());
   WINES = await r.json();
   initFilters(); render();
 }
@@ -146,13 +146,13 @@ function render() {
   const s = sortSel.value;
   list.sort((a, b) =>
     s === 'vintage' ? b.vintage - a.vintage :
-    s === 'price-desc' ? b.current_value - a.current_value :
-    s === 'price-asc' ? a.current_value - b.current_value :
+    s === 'price-desc' ? (b.current_value??0) - (a.current_value??0) :
+    s === 'price-asc' ? (a.current_value??0) - (b.current_value??0) :
     s === 'rating' ? b.rating - a.rating :
     a.name.localeCompare(b.name));
 
   const bottles = list.reduce((n, w) => n + w.quantity, 0);
-  const value = list.reduce((n, w) => n + w.quantity * w.current_value, 0);
+  const value = list.reduce((n, w) => n + w.quantity * (w.current_value ?? w.purchase_price ?? 0), 0);
   document.getElementById('stats').textContent =
     `${list.length} wines · ${bottles} bottles · $${value.toLocaleString()} cellar value`;
 
@@ -165,7 +165,7 @@ function render() {
       <div class="row"><span>Quantity</span><span>${w.quantity} bottle${w.quantity > 1 ? 's' : ''}</span></div>
       <div class="row"><span>Rating</span><span class="stars">${stars(w.rating)}</span></div>
       <div class="row"><span>Drink window</span><span>${w.drink_window}${drinkNow(w) ? ' ✓' : ''}</span></div>
-      <div class="row"><span>Value</span><span>$${w.current_value}</span></div>
+      <div class="row"><span>Value</span><span>$${(w.current_value ?? w.purchase_price ?? 0)}</span></div>
       <div class="row"><span>Location</span><span>${w.location}</span></div>
       <div class="notes">"${w.tasting_notes}"</div>
       <div class="pair">Pairs with: ${w.food_pairings.join(' · ')}</div>
@@ -209,11 +209,11 @@ function sommelier(q) {
   if (/cheap|under \$?(\d+)/.test(s)) {
     const m = s.match(/under \$?(\d+)/);
     const cap = m ? +m[1] : 100;
-    const list = WINES.filter(w => w.current_value <= cap);
+    const list = WINES.filter(w => (w.current_value ?? 0) <= cap);
     return list.length ? `Bottles under $${cap}:\n\n` + list.map(fmt).join('\n\n') : `Nothing under $${cap} in the vault.`;
   }
   if (/value|worth|total/.test(s)) {
-    const v = WINES.reduce((n, w) => n + w.quantity * w.current_value, 0);
+    const v = WINES.reduce((n, w) => n + w.quantity * (w.current_value ?? w.purchase_price ?? 0), 0);
     return `The vault holds ${WINES.reduce((n, w) => n + w.quantity, 0)} bottles across ${WINES.length} wines, valued at $${v.toLocaleString()}.`;
   }
   const hit = WINES.find(w => s.includes(w.name.toLowerCase().split(' ')[0].toLowerCase()) && w.name.length > 3);
