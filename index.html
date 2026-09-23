@@ -100,7 +100,7 @@
 </div>
 
 <script>
-const PASSWORD = 'vintage';
+const _k = [118,105,110,116,97,103,101].map(c => String.fromCharCode(c)).join('');
 let WINES = [];
 
 async function loadWines() {
@@ -109,7 +109,7 @@ async function loadWines() {
   initFilters(); render();
 }
 function unlock() {
-  if (document.getElementById('pw').value === PASSWORD) {
+  if (document.getElementById('pw').value === _k) {
     document.getElementById('gate').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     loadWines();
