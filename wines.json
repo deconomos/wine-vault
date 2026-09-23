@@ -13,12 +13,17 @@
     "purchase_price": 85,
     "location": "Rack A, Row 2",
     "tasting_notes": "Ripe blackberry, cassis, cocoa, vanilla; plush tannins, long finish.",
-    "food_pairings": ["Ribeye", "Braised short ribs", "Aged cheddar"]
+    "food_pairings": [
+      "Ribeye",
+      "Braised short ribs",
+      "Aged cheddar"
+    ],
+    "current_value": 95
   },
   {
     "id": 2,
-    "name": "Château Margaux",
-    "producer": "Château Margaux",
+    "name": "Ch\u00e2teau Margaux",
+    "producer": "Ch\u00e2teau Margaux",
     "vintage": 2015,
     "region": "Margaux, Bordeaux",
     "varietal": "Bordeaux Blend",
@@ -29,7 +34,12 @@
     "purchase_price": 650,
     "location": "Rack C, Row 1",
     "tasting_notes": "Violet, black cherry, graphite, cedar; ethereal texture, immense length.",
-    "food_pairings": ["Roast lamb", "Duck breast", "Truffle risotto"]
+    "food_pairings": [
+      "Roast lamb",
+      "Duck breast",
+      "Truffle risotto"
+    ],
+    "current_value": 2000
   },
   {
     "id": 3,
@@ -45,7 +55,12 @@
     "purchase_price": 75,
     "location": "Rack B, Row 3",
     "tasting_notes": "Lemon curd, hazelnut, wet stone; Burgundian weight with coastal acidity.",
-    "food_pairings": ["Lobster", "Roast chicken", "Risotto"]
+    "food_pairings": [
+      "Lobster",
+      "Roast chicken",
+      "Risotto"
+    ],
+    "current_value": 105
   },
   {
     "id": 4,
@@ -61,12 +76,17 @@
     "purchase_price": 280,
     "location": "Rack C, Row 2",
     "tasting_notes": "Blackcurrant, Mediterranean herbs, tobacco; polished, savory, ageworthy.",
-    "food_pairings": ["Bistecca alla fiorentina", "Wild boar ragu", "Pecorino"]
+    "food_pairings": [
+      "Bistecca alla fiorentina",
+      "Wild boar ragu",
+      "Pecorino"
+    ],
+    "current_value": 350
   },
   {
     "id": 5,
-    "name": "Dom Pérignon",
-    "producer": "Moët & Chandon",
+    "name": "Dom P\u00e9rignon",
+    "producer": "Mo\u00ebt & Chandon",
     "vintage": 2013,
     "region": "Champagne, France",
     "varietal": "Chardonnay / Pinot Noir",
@@ -77,7 +97,12 @@
     "purchase_price": 220,
     "location": "Rack D, Row 1",
     "tasting_notes": "Brioche, white peach, almond, chalk; fine mousse, saline finish.",
-    "food_pairings": ["Oysters", "Caviar", "Fried chicken"]
+    "food_pairings": [
+      "Oysters",
+      "Caviar",
+      "Fried chicken"
+    ],
+    "current_value": 313
   },
   {
     "id": 6,
@@ -93,6 +118,11 @@
     "purchase_price": 395,
     "location": "Rack C, Row 1",
     "tasting_notes": "Dark plum, espresso, violet, graphite; seamless and powerful.",
-    "food_pairings": ["Filet mignon", "Venison", "Mushroom tart"]
+    "food_pairings": [
+      "Filet mignon",
+      "Venison",
+      "Mushroom tart"
+    ],
+    "current_value": 459
   }
 ]
