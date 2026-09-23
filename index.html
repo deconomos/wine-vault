@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Wine Vault</title>
+<style>
+  :root {
+    --bg: #0e0a08;
+    --panel: #1a1410;
+    --panel2: #241b14;
+    --gold: #c9a24b;
+    --gold-dim: #8a7339;
+    --text: #ece4d6;
+    --muted: #9b8d7a;
+    --red: #7a2e2e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: Georgia, 'Times New Roman', serif; min-height: 100vh; }
+
+  /* Password gate */
+  #gate { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 100; flex-direction: column; gap: 18px; }
+  #gate h1 { color: var(--gold); font-size: 2rem; letter-spacing: 3px; }
+  #gate input { background: var(--panel); border: 1px solid var(--gold-dim); color: var(--text); padding: 12px 16px; font-size: 1rem; border-radius: 6px; width: 260px; text-align: center; }
+  #gate button { background: var(--gold); color: #111; border: none; padding: 12px 28px; font-size: 1rem; border-radius: 6px; cursor: pointer; font-family: inherit; }
+  #gate .err { color: #d66; font-size: .9rem; display: none; }
+
+  header { padding: 28px 32px 8px; display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  header h1 { color: var(--gold); font-size: 1.9rem; letter-spacing: 2px; }
+  header .stats { color: var(--muted); font-size: .95rem; }
+
+  #controls { padding: 14px 32px; display: flex; gap: 12px; flex-wrap: wrap; }
+  #controls input, #controls select { background: var(--panel); border: 1px solid var(--gold-dim); color: var(--text); padding: 9px 12px; border-radius: 6px; font-family: inherit; font-size: .92rem; }
+  #controls input { flex: 1; min-width: 220px; }
+
+  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; padding: 10px 32px 90px; }
+  .card { background: var(--panel); border: 1px solid #2e241a; border-radius: 10px; padding: 18px; transition: transform .15s, border-color .15s; }
+  .card:hover { transform: translateY(-3px); border-color: var(--gold-dim); }
+  .card .type-badge { font-size: .72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); margin-bottom: 6px; }
+  .card h3 { font-size: 1.15rem; margin-bottom: 2px; }
+  .card .sub { color: var(--muted); font-size: .88rem; margin-bottom: 10px; }
+  .card .row { display: flex; justify-content: space-between; font-size: .88rem; padding: 3px 0; border-top: 1px solid #2a2118; }
+  .card .row span:first-child { color: var(--muted); }
+  .card .notes { font-size: .85rem; color: #c7bba6; font-style: italic; margin-top: 10px; }
+  .card .pair { font-size: .82rem; color: var(--muted); margin-top: 6px; }
+  .stars { color: var(--gold); }
+
+  /* Concierge */
+  #concierge-btn { position: fixed; bottom: 24px; right: 24px; background: var(--gold); color: #111; border: none; border-radius: 50px; padding: 14px 22px; font-size: 1rem; cursor: pointer; font-family: inherit; box-shadow: 0 4px 18px rgba(0,0,0,.5); z-index: 50; }
+  #concierge { position: fixed; bottom: 90px; right: 24px; width: 380px; max-width: calc(100vw - 48px); height: 480px; background: var(--panel2); border: 1px solid var(--gold-dim); border-radius: 12px; display: none; flex-direction: column; z-index: 50; overflow: hidden; }
+  #concierge.open { display: flex; }
+  #concierge header { padding: 14px 16px; background: var(--panel); }
+  #concierge header h2 { font-size: 1rem; color: var(--gold); }
+  #chat { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { padding: 9px 12px; border-radius: 8px; font-size: .9rem; line-height: 1.45; max-width: 88%; white-space: pre-wrap; }
+  .msg.user { background: var(--red); align-self: flex-end; }
+  .msg.bot { background: #2c2318; align-self: flex-start; }
+  #chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #2a2118; }
+  #chat-form input { flex: 1; background: var(--panel); border: 1px solid var(--gold-dim); color: var(--text); padding: 9px 12px; border-radius: 6px; font-family: inherit; }
+  #chat-form button { background: var(--gold); border: none; color: #111; padding: 9px 16px; border-radius: 6px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h1>🍷 THE WINE VAULT</h1>
+  <input type="password" id="pw" placeholder="Password" autofocus>
+  <button onclick="unlock()">Enter</button>
+  <div class="err" id="err">Incorrect password</div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <h1>🍷 The Wine Vault</h1>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div id="controls">
+    <input type="text" id="search" placeholder="Search name, producer, region, varietal…">
+    <select id="f-type"><option value="">All types</option></select>
+    <select id="f-region"><option value="">All regions</option></select>
+    <select id="f-drink"><option value="">Any window</option><option value="now">Drink now</option></select>
+    <select id="sort">
+      <option value="name">Sort: Name</option>
+      <option value="vintage">Sort: Vintage</option>
+      <option value="price-desc">Sort: Price ↓</option>
+      <option value="price-asc">Sort: Price ↑</option>
+      <option value="rating">Sort: Rating</option>
+    </select>
+  </div>
+
+  <div id="grid"></div>
+
+  <button id="concierge-btn" onclick="toggleConcierge()">🎩 Sommelier</button>
+  <div id="concierge">
+    <header><h2>🎩 Sommelier Concierge</h2></header>
+    <div id="chat"><div class="msg bot">Good evening. I know every bottle in your vault. What are we drinking tonight?</div></div>
+    <form id="chat-form"><input id="chat-in" placeholder="Ask the sommelier…" autocomplete="off"><button>➤</button></form>
+  </div>
+</div>
+
+<script>
+const PASSWORD = 'vintage';
+let WINES = [];
+
+async function loadWines() {
+  const r = await fetch('wines.json');
+  WINES = await r.json();
+  initFilters(); render();
+}
+function unlock() {
+  if (document.getElementById('pw').value === PASSWORD) {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadWines();
+  } else { document.getElementById('err').style.display = 'block'; }
+}
+document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
+
+function stars(r) { return '★'.repeat(Math.round(r)) + '☆'.repeat(5 - Math.round(r)); }
+function drinkNow(w) {
+  const m = (w.drink_window || '').match(/(\d{4})\s*[-–]\s*(\d{4})/);
+  if (!m) return false;
+  const y = new Date().getFullYear();
+  return y >= +m[1] && y <= +m[2];
+}
+function initFilters() {
+  const types = [...new Set(WINES.map(w => w.type))].sort();
+  const regions = [...new Set(WINES.map(w => w.region.split(',').pop().trim()))].sort();
+  types.forEach(t => fType.add(new Option(t, t)));
+  regions.forEach(r => fRegion.add(new Option(r, r)));
+}
+const fType = document.getElementById('f-type'), fRegion = document.getElementById('f-region'),
+      fDrink = document.getElementById('f-drink'), sortSel = document.getElementById('sort'),
+      searchIn = document.getElementById('search');
+[searchIn, fType, fRegion, fDrink, sortSel].forEach(el => el.addEventListener('input', render));
+
+function render() {
+  const q = searchIn.value.toLowerCase();
+  let list = WINES.filter(w =>
+    (!q || [w.name, w.producer, w.region, w.varietal].join(' ').toLowerCase().includes(q)) &&
+    (!fType.value || w.type === fType.value) &&
+    (!fRegion.value || w.region.includes(fRegion.value)) &&
+    (!fDrink.value || drinkNow(w))
+  );
+  const s = sortSel.value;
+  list.sort((a, b) =>
+    s === 'vintage' ? b.vintage - a.vintage :
+    s === 'price-desc' ? b.purchase_price - a.purchase_price :
+    s === 'price-asc' ? a.purchase_price - b.purchase_price :
+    s === 'rating' ? b.rating - a.rating :
+    a.name.localeCompare(b.name));
+
+  const bottles = list.reduce((n, w) => n + w.quantity, 0);
+  const value = list.reduce((n, w) => n + w.quantity * w.purchase_price, 0);
+  document.getElementById('stats').textContent =
+    `${list.length} wines · ${bottles} bottles · $${value.toLocaleString()} cellar value`;
+
+  document.getElementById('grid').innerHTML = list.map(w => `
+    <div class="card">
+      <div class="type-badge">${w.type} · ${w.vintage}</div>
+      <h3>${w.name}</h3>
+      <div class="sub">${w.producer} — ${w.region}</div>
+      <div class="row"><span>Varietal</span><span>${w.varietal}</span></div>
+      <div class="row"><span>Quantity</span><span>${w.quantity} bottle${w.quantity > 1 ? 's' : ''}</span></div>
+      <div class="row"><span>Rating</span><span class="stars">${stars(w.rating)}</span></div>
+      <div class="row"><span>Drink window</span><span>${w.drink_window}${drinkNow(w) ? ' ✓' : ''}</span></div>
+      <div class="row"><span>Price</span><span>$${w.purchase_price}</span></div>
+      <div class="row"><span>Location</span><span>${w.location}</span></div>
+      <div class="notes">"${w.tasting_notes}"</div>
+      <div class="pair">Pairs with: ${w.food_pairings.join(' · ')}</div>
+    </div>`).join('');
+}
+
+/* Concierge — local rule-based sommelier over the cellar data */
+function toggleConcierge() { document.getElementById('concierge').classList.toggle('open'); }
+document.getElementById('chat-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const inp = document.getElementById('chat-in'), q = inp.value.trim();
+  if (!q) return;
+  addMsg(q, 'user'); inp.value = '';
+  setTimeout(() => addMsg(sommelier(q), 'bot'), 250);
+});
+function addMsg(t, who) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + who; d.textContent = t;
+  const c = document.getElementById('chat');
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+function sommelier(q) {
+  const s = q.toLowerCase();
+  const fmt = w => `${w.name} ${w.vintage} (${w.region}) — ${w.quantity} in cellar, drinks ${w.drink_window}. ${w.tasting_notes}`;
+  if (/steak|ribeye|beef|filet|lamb/.test(s)) {
+    const reds = WINES.filter(w => w.type === 'Red').sort((a, b) => b.rating - a.rating);
+    return 'For red meat, from your vault:\n\n' + reds.slice(0, 3).map(fmt).join('\n\n');
+  }
+  if (/fish|lobster|oyster|seafood|chicken|white/.test(s)) {
+    const whites = WINES.filter(w => w.type !== 'Red');
+    return whites.length ? 'From the cellar:\n\n' + whites.map(fmt).join('\n\n') : 'No whites or sparkling in the vault yet.';
+  }
+  if (/drink now|ready|tonight|open/.test(s)) {
+    const now = WINES.filter(drinkNow).sort((a, b) => b.rating - a.rating);
+    return now.length ? 'Ready to drink now:\n\n' + now.map(fmt).join('\n\n') : 'Nothing is currently in its drinking window.';
+  }
+  if (/best|top|highest|special/.test(s)) {
+    const top = [...WINES].sort((a, b) => b.rating - a.rating).slice(0, 3);
+    return 'Your finest bottles:\n\n' + top.map(fmt).join('\n\n');
+  }
+  if (/cheap|under \$?(\d+)/.test(s)) {
+    const m = s.match(/under \$?(\d+)/);
+    const cap = m ? +m[1] : 100;
+    const list = WINES.filter(w => w.purchase_price <= cap);
+    return list.length ? `Bottles under $${cap}:\n\n` + list.map(fmt).join('\n\n') : `Nothing under $${cap} in the vault.`;
+  }
+  if (/value|worth|total/.test(s)) {
+    const v = WINES.reduce((n, w) => n + w.quantity * w.purchase_price, 0);
+    return `The vault holds ${WINES.reduce((n, w) => n + w.quantity, 0)} bottles across ${WINES.length} wines, valued at $${v.toLocaleString()}.`;
+  }
+  const hit = WINES.find(w => s.includes(w.name.toLowerCase().split(' ')[0].toLowerCase()) && w.name.length > 3);
+  if (hit) return fmt(hit);
+  return 'Ask me what to drink with a dish, what\'s ready to open, your best bottles, bottles under a price, or total cellar value.';
+}
+</script>
+</body>
+</html>
